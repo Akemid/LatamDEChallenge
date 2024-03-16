@@ -17,7 +17,7 @@ def q1_memory(file_path: str) -> List[Tuple[datetime.date, str]]:
     # It is the one that uses pandas with the best memory optimization.
     # The line by line function is the one that uses the least memory but it is the slowest
     # And for that reason it is not the best option.
-    return q1_memory_pandas_types(file_path=file_path)
+    return q1_memory_pandas(file_path=file_path)
 
 @profile(precision=4)
 def q1_memory_line_by_line(file_path: str) -> List[Tuple[datetime.date, str]]:
@@ -50,47 +50,10 @@ def q1_memory_line_by_line(file_path: str) -> List[Tuple[datetime.date, str]]:
                         for date in tweets_dict.keys()
                         ]        
     return list(zip(tweets_dict.keys(), users_top_tweets))
-
-    
-@profile(precision=4)   
-def q1_memory_ijson(file_path: str) -> List[Tuple[datetime.date, str]]:
-    # We need to optimize the memory
-    # So we need to read the file line by line or on streaming mode
-    # Read line by line using json
-    
-    tweets_dict = defaultdict(lambda: defaultdict(int))
-    with open(file_path, 'r', encoding='utf-8') as file:
-        # Read line by line
-        for index,line in enumerate(file):
-            # Load the json
-            line_as_file = io.StringIO(line)
-            json_parser = ijson.parse(line_as_file)
-            for prefix,event,value in json_parser:
-                if prefix == 'date':
-                    date = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S%z").date()                    
-                elif prefix == 'user.username':
-                    username = value       
-                    if date:        
-                        break
-            tweets_dict[date][username] += 1    
-    # Get all the data in form of item (date, {user:count})
-    tweet_dict_items = tweets_dict.items()
-    # Sort the dates by the sum of the tweets counts of each user and order desc
-    tweets_dict = sorted(tweet_dict_items, key=lambda x:sum(x[1].values()), reverse=True)
-    # Get the top 10 dates
-    tweets_dict = tweets_dict[:10]
-    # Get in dict format
-    tweets_dict = dict(tweets_dict)
-    # Creating a list with comprehension in order to save memory
-    users_top_tweets = [
-                        # Get the user with the most tweets for each date
-                        max(tweets_dict[date],key=lambda x: tweets_dict[date][x])
-                        for date in tweets_dict.keys()
-                        ]        
-    return list(zip(tweets_dict.keys(), users_top_tweets))
+   
 
 @profile(precision=4)
-def q1_memory_pandas_types(file_path: str,chunksize=1000) -> List[Tuple[datetime.date, str]]:
+def q1_memory_pandas(file_path: str,chunksize=1000) -> List[Tuple[datetime.date, str]]:
     # Many options to optimize the memory
     # Chunksize allows to read the file in chunks
     # Dtypes allows to specify the type of the columns and loss information that is not needed
@@ -136,21 +99,6 @@ def q1_memory_pandas_types(file_path: str,chunksize=1000) -> List[Tuple[datetime
         top_twitter_user = top_twitter_user.sort_values(by=0,ascending=False).head(1)
         # Get the username
         top_twitter_user = top_twitter_user.index.values.tolist()[0]
-        users.append(top_twitter_user)
-    return list(zip(top_dates, users)) 
-
-@profile(precision=4)
-def q1_memory_pandas(file_path: str,chunksize=1000) -> List[Tuple[datetime.date, str]]:
-    tweets = pd.read_json(file_path, lines=True,chunksize=chunksize,convert_dates=True)
-    procced_tweets = map(process_tweets, tweets)
-    result = reduce(add, procced_tweets)
-    top_dates = result.groupby(['date']).sum().sort_values(ascending=False).head(10).index.values.tolist()
-    users = []
-    result = result.reset_index()    
-    for date in top_dates:
-        top_twitter_user = result[result['date'] == date][["user",0]]
-        top_twitter_user = top_twitter_user.groupby(['user']).sum()    
-        top_twitter_user = top_twitter_user.sort_values(by=0,ascending=False).head(1).index.values.tolist()[0]
         users.append(top_twitter_user)
     return list(zip(top_dates, users)) 
 
@@ -203,14 +151,10 @@ if __name__ == "__main__":
         # Execute different functions based on the argument
         if sys.argv[1] == "line_by_line":
             result = q1_memory_line_by_line(file_path)
-        elif sys.argv[1] == "ijson":
-            result = q1_memory_ijson(file_path)
-        elif sys.argv[1] == "pandas":
-            result = q1_memory_pandas(file_path)
         elif sys.argv[1] == "polars":
             result = q1_memory_polars(file_path)
-        elif sys.argv[1] == "pandas_types":
-            result = q1_memory_pandas_types(file_path)
+        elif sys.argv[1] == "pandas":
+            result = q1_memory_pandas(file_path)
         else:
             print("Invalid argument.")
             sys.exit(1)
