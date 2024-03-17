@@ -1,28 +1,9 @@
-import json
+
 import polars as pl
 from typing import List, Tuple
 from collections import Counter
 
-def q3_time(file_path: str) -> List[Tuple[str, int]]:
-    pass
-
-def q3_time_json(file_path: str) -> List[Tuple[str, int]]:
-    with open(file_path, "r") as f:
-        mentioned_users_total = []
-        for line in f.readlines():
-            tweet = json.loads(line)
-            if tweet["mentionedUsers"]:
-                mentioned_users = [
-                    user["username"]
-                    for user in tweet["mentionedUsers"]
-                    if len(tweet["mentionedUsers"]) > 0 
-                ]
-                mentioned_users_total.extend(mentioned_users)
-        counter_mentioned_users = Counter(mentioned_users_total)
-        top_influyent_users = counter_mentioned_users.most_common(10)
-        return top_influyent_users
-
-def q3_time_polars(file_path: str) -> List[Tuple[str, int]]:    
+def q3_time(file_path: str) -> List[Tuple[str, int]]:   
     # Read the file json
     query = read_lazy_json(file_path)
     # Begin to execute all the operations previously defined
