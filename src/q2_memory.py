@@ -6,21 +6,8 @@ import pandas as pd
 from memory_profiler import profile
 from functools import reduce
 
-
-def q2_memory(file_path: str) -> List[Tuple[str, int]]:
-    with open(file_path, "r") as file:
-        emoji_list_total = []
-        for line in file:
-            tweet = json.loads(line)
-            emoji_list_extracted = emoji.emoji_list(tweet["content"])
-            emoji_list_extracted = [emoji["emoji"] for emoji in emoji_list_extracted]
-            emoji_list_total.extend(emoji_list_extracted)
-        counter_emojis = Counter(emoji_list_total)
-        top_emojis = counter_emojis.most_common(10)
-        return top_emojis
-
 @profile(precision=4)
-def q2_memory_pandas_map_reduce(file_path: str) -> List[Tuple[str, int]]:
+def q2_memory(file_path: str) -> List[Tuple[str, int]]:
     tweets = pd.read_json(
         file_path,
         lines=True,
