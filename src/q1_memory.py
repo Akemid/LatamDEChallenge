@@ -41,9 +41,9 @@ def q1_memory(file_path: str) -> List[Tuple[datetime.date, str]]:
         "mentionedUsers":"bool",
     })
     # Each chunk is processed and then added to the result
-    procced_tweets = map(process_tweets, tweets)
+    processed_tweets = map(process_tweets, tweets)
     # The result is reduced to a single dataframe
-    result = reduce(add, procced_tweets)
+    result = reduce(add, processed_tweets)
     # The top dates are extracted
     top_dates = result.groupby(['date']).sum().sort_values(ascending=False).head(10).index.values.tolist()
     users = []
