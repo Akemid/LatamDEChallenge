@@ -1,4 +1,3 @@
-import json
 import emoji
 from typing import List, Tuple
 from collections import Counter
