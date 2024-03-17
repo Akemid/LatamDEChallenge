@@ -1,33 +1,11 @@
-import json
 import pandas as pd
 from typing import List, Tuple
 from collections import Counter
 from memory_profiler import profile
 from functools import reduce
 
-
+@profile(precision=4)
 def q3_memory(file_path: str) -> List[Tuple[str, int]]:
-    pass
-
-
-def q3_memory_json(file_path: str) -> List[Tuple[str, int]]:
-    with open(file_path, "r") as file:
-        mentioned_users_total = []
-        for line in file:
-            tweet = json.loads(line)
-            if tweet["mentionedUsers"]:
-                mentioned_users = [
-                    user["username"]
-                    for user in tweet["mentionedUsers"]
-                    if len(tweet["mentionedUsers"]) > 0 
-                ]
-                mentioned_users_total.extend(mentioned_users)
-        counter_mentioned_users = Counter(mentioned_users_total)
-        top_influyent_users = counter_mentioned_users.most_common(10)
-        return top_influyent_users
-
-
-def q3_memory_pandas(file_path: str) -> List[Tuple[str, int]]:
     tweets = pd.read_json(
         file_path,
         lines=True,
@@ -36,7 +14,7 @@ def q3_memory_pandas(file_path: str) -> List[Tuple[str, int]]:
         dtype={
             "url": "bool",
             "date": "bool",
-            "content": "string",
+            "content": "bool",
             "renderedContent": "bool",
             "id": "bool",
             "user": "bool",
