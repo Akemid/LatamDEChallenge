@@ -7,6 +7,8 @@ from functools import reduce
 
 @profile(precision=4)
 def q2_memory(file_path: str) -> List[Tuple[str, int]]:
+    # The selected function is the one that has the best performance,
+    # Read the file in chunks and then process the chunks
     tweets = pd.read_json(
         file_path,
         lines=True,
@@ -37,15 +39,21 @@ def q2_memory(file_path: str) -> List[Tuple[str, int]]:
         },
     )
 
+    # Each chunk is processed and then added to the result
     emoji_list = map(get_emojis, tweets)
+    # The result is reduced to a single list
     result = reduce(lambda x,y: x+y, emoji_list)
+    # Count the emojis using Counter
     counter_emojis = Counter(result)
+    # Get the top 10 emojis
     top_emojis = counter_emojis.most_common(10)
     return top_emojis
 
 
 def get_emojis(df: pd.DataFrame):
+    # Get the emojis from the content
     emoji_list_extracted = df["content"].apply(lambda x: emoji.emoji_list(x))
+    # Flatten the list of emojis
     emoji_list_extracted = [
             item["emoji"]
             for emoji_list in emoji_list_extracted.values.tolist()
@@ -54,6 +62,4 @@ def get_emojis(df: pd.DataFrame):
         ]
     return emoji_list_extracted
 
-if __name__ == "__main__":
-    file_path = "datasets/farmers-protest-tweets-2021-2-4.json"
-    q2_memory(file_path)
+
